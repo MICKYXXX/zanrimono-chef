@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>残りものシェフ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #F2F7F4;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .phone {
+      width: 390px;
+      min-height: 100vh;
+      background: #F2F7F4;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #2E7A58;
+      padding: 50px 20px 20px;
+    }
+    .header-greeting {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 4px;
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .streak-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.15);
+      border: 0.5px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.9);
+    }
+    .streak-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #F0A888;
+    }
+    .content {
+      padding: 20px;
+      flex: 1;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #7A9A88;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .col-headers {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding-right: 30px;
+    }
+    .col-h { font-size: 10px; color: #7A9A88; }
+    .col-h.name { flex: 1.7; }
+    .col-h.qty  { flex: 1; }
+    .ingredient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .ing-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .ing-cell {
+      background: #fff;
+      border: 0.5px solid #C8DDD2;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #1A2E24;
+    }
+    .ing-cell.name { flex: 1.7; }
+    .ing-cell.qty  { flex: 1; }
+    .del-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #DFF0E8;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: #7A9A88;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .input-row input {
+      background: #fff;
+      border: 1px solid #2E7A58;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #1A2E24;
+      outline: none;
+    }
+    .input-row input.name { flex: 1.7; }
+    .input-row input.qty  { flex: 1; }
+    .add-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #2E7A58;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .propose-btn {
+      width: 100%;
+      background: #E8704A;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .propose-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #7A9A88;
+      font-size: 14px;
+      display: none;
+    }
+    .loading.show { display: block; }
+
+    /* レシピカード */
+    .recipe-section { display: none; }
+    .recipe-section.show { display: block; }
+    .recipe-card {
+      background: #fff;
+      border-radius: 14px;
+      border: 0.5px solid #C8DDD2;
+      overflow: hidden;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .recipe-card.featured {
+      border: 1.5px solid #E8704A;
+    }
+    .card-top-bar {
+      height: 4px;
+    }
+    .card-top-bar.easy   { background: #5AA882; }
+    .card-top-bar.normal { background: #F0A888; }
+    .card-top-bar.hard   { background: #E8704A; }
+    .card-body {
+      padding: 14px;
+    }
+    .featured-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #FBE8E0;
+      color: #E8704A;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A2E24;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: #7A9A88;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: #7A9A88;
+    }
+    .use-badge {
+      margin-left: auto;
+      background: #E8F2EC;
+      color: #2E7A58;
+      border-radius: 10px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .use-bar-wrap { padding: 0 14px 12px; }
+    .use-bar-track {
+      height: 4px;
+      background: #CCE8D8;
+      border-radius: 2px;
+    }
+    .use-bar-fill {
+      height: 4px;
+      border-radius: 2px;
+      background: #2E7A58;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+
+    <div class="header">
+      <div class="header-greeting">こんにちは、今日も使い切ろう</div>
+      <div class="header-title">残りものシェフ</div>
+      <div class="streak-pill">
+        <div class="streak-dot"></div>
+        7日連続使い切り中
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="section-label">今日の残り物</div>
+      <div class="col-headers">
+        <span class="col-h name">食材名</span>
+        <span class="col-h qty">量・個数</span>
+      </div>
+      <div class="ingredient-list" id="ingredientList"></div>
+      <div class="input-row">
+        <input class="name" type="text" id="nameInput" placeholder="例：にんじん">
+        <input class="qty"  type="text" id="qtyInput"  placeholder="例：1本">
+        <button class="add-btn" onclick="addIngredient()">＋</button>
+      </div>
+      <button class="propose-btn" id="proposeBtn" onclick="proposeRecipe()">
+        ✦ レシピを提案してもらう
+      </button>
+
+      <!-- ローディング -->
+      <div class="loading" id="loading">
+        AIがレシピを考えています...<br>少々お待ちください
+      </div>
+
+      <!-- レシピ一覧 -->
+      <div class="recipe-section" id="recipeSection">
+        <div class="section-label" style="margin-bottom:12px;">提案レシピ</div>
+        <div id="recipeList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API_KEY = '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'; // ここを書き換える
+
+    let ingredients = [];
+
+    function addIngredient() {
+      const name = document.getElementById('nameInput').value.trim();
+      const qty  = document.getElementById('qtyInput').value.trim();
+      if (name === '') { alert('食材名を入力してください'); return; }
+      ingredients.push({ name, qty });
+      document.getElementById('nameInput').value = '';
+      document.getElementById('qtyInput').value  = '';
+      document.getElementById('nameInput').focus();
+      renderIngredients();
+    }
+
+    function deleteIngredient(index) {
+      ingredients.splice(index, 1);
+      renderIngredients();
+    }
+
+    function renderIngredients() {
+      const list = document.getElementById('ingredientList');
+      list.innerHTML = '';
+      ingredients.forEach((ing, index) => {
+        const row = document.createElement('div');
+        row.className = 'ing-row';
+        row.innerHTML = `
+          <div class="ing-cell name">${ing.name}</div>
+          <div class="ing-cell qty">${ing.qty || '—'}</div>
+          <button class="del-btn" onclick="deleteIngredient(${index})">×</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('qtyInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addIngredient();
+      });
+      document.getElementById('nameInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('qtyInput').focus();
+      });
+    });
+
+    async function proposeRecipe() {
+      if (ingredients.length === 0) {
+        alert('食材を入力してください');
+        return;
+      }
+
+      // ボタンを無効化してローディング表示
+      document.getElementById('proposeBtn').disabled = true;
+      document.getElementById('loading').classList.add('show');
+      document.getElementById('recipeSection').classList.remove('show');
+
+      // 食材リストをテキストに変換
+      const ingredientText = ingredients
+        .map(i => `${i.name}${i.qty ? '（' + i.qty + '）' : ''}`)
+        .join('、');
+
+      // AIへの質問文を作る
+      const prompt = `
+冷蔵庫に以下の食材があります：${ingredientText}
+
+これらの食材を使って作れる料理を3つ提案してください。
+必ず以下のJSON形式のみで返してください。説明文は不要です。
+
+[
+  {
+    "title": "料理名",
+    "description": "一言説明（30文字以内）",
+    "time": "調理時間（例：20分）",
+    "difficulty": "easy または normal または hard",
+    "usageRate": 使用食材の割合（0から1の数値）,
+    "featured": trueまたはfalse（一番おすすめの料理のみtrue）
+  }
+]`;
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 1000
+          })
+        });
+
+        const data = await response.json();
+        const text = data.choices[0].message.content;
+
+        // JSONを取り出してパース
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        const recipes = JSON.parse(jsonMatch[0]);
+
+        renderRecipes(recipes);
+
+      } catch (error) {
+        alert('エラーが発生しました。APIキーを確認してください。');
+        console.error(error);
+      } finally {
+        document.getElementById('proposeBtn').disabled = false;
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+
+    function renderRecipes(recipes) {
+      const list = document.getElementById('recipeList');
+      list.innerHTML = '';
+
+      recipes.forEach(recipe => {
+        const usagePct = Math.round(recipe.usageRate * 100);
+        const card = document.createElement('div');
+        card.className = `recipe-card${recipe.featured ? ' featured' : ''}`;
+        card.innerHTML = `
+          <div class="card-top-bar ${recipe.difficulty}"></div>
+          <div class="card-body">
+            ${recipe.featured ? '<div class="featured-badge">✦ おすすめ</div>' : ''}
+            <div class="card-title">${recipe.title}</div>
+            <div class="card-desc">${recipe.description}</div>
+            <div class="card-meta">
+              <span>⏱ ${recipe.time}</span>
+              <span>${recipe.difficulty === 'easy' ? 'かんたん' : recipe.difficulty === 'normal' ? 'ふつう' : 'むずかしい'}</span>
+              <span class="use-badge">${usagePct}% 使い切り</span>
+            </div>
+          </div>
+          <div class="use-bar-wrap">
+            <div class="use-bar-track">
+              <div class="use-bar-fill" style="width:${usagePct}%"></div>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      document.getElementById('recipeSection').classList.add('show');
+    }
+  </script>
+</body>
+</html>
