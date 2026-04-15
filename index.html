@@ -1124,9 +1124,9 @@
         '  }\n' +
         ']';
       try {
-        var res  = await fetch('https://api.openai.com/v1/chat/completions',{
+        var res  = await fetch('/.netlify/functions/chat',{
           method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+          headers:{'Content-Type': 'application/json'},
           body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:1000})
         });
         var data    = await res.json();
@@ -1203,9 +1203,9 @@
         '}';
 
       try {
-        var res    = await fetch('https://api.openai.com/v1/chat/completions',{
+        var res    = await fetch('/.netlify/functions/chat',{
           method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+          headers:{'Content-Type': 'application/json'},
           body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:1200})
         });
         var data   = await res.json();
