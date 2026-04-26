@@ -30,6 +30,12 @@ export const FOOD_WEIGHT: Record<string, number> = {
 };
 
 export function getWeightFromTable(name: string, qty: string): number | null {
+  // 量にすでに重量単位が含まれる場合はテーブルを使わず直接返す
+  const kgMatch = qty.match(/(\d+(?:\.\d+)?)\s*kg/i);
+  if (kgMatch) return parseFloat(kgMatch[1]) * 1000;
+  const gMatch = qty.match(/(\d+(?:\.\d+)?)\s*g(?![\w])/i);
+  if (gMatch) return parseFloat(gMatch[1]);
+
   for (const key of Object.keys(FOOD_WEIGHT)) {
     if (name.includes(key) || key.includes(name)) {
       const num = parseFloat(qty) || 1;
