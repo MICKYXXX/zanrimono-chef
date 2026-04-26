@@ -55,5 +55,3 @@ export default async (request: Request): Promise<Response> => {
     },
   });
 };
-
-export const config = { path: '/api/chat' };
