@@ -338,7 +338,10 @@ ${profileText ? '\n' + profileText + '\n' : ''}
         }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}: ${errBody.slice(0, 200)}`);
+      }
 
       // ── 3. レシピ1件を受信したら即座に追加 ──────────────────────────────
       let addedCount = 0;
