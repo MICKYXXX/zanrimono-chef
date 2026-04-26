@@ -58,7 +58,7 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_ENDPOINT =
-  'https://dashing-crumble-cb48ca.netlify.app/api/chat';
+  'https://dashing-crumble-cb48ca.netlify.app/.netlify/functions/chat';
 
 const DIFFICULTY_COLORS: Record<Recipe['difficulty'], string> = {
   簡単: AppColors.green,
@@ -357,8 +357,10 @@ ${profileText ? '\n' + profileText + '\n' : ''}
         }
       };
 
-      if (res.body) {
-        // ストリーミング対応：SSEチャンクを逐次処理してレシピを1件ずつ表示
+      const isStreaming = res.headers.get('content-type')?.includes('text/event-stream') ?? false;
+
+      if (isStreaming && res.body) {
+        // SSEストリーミング：レシピを1件ずつ表示
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let sseBuffer = '';
@@ -400,7 +402,7 @@ ${profileText ? '\n' + profileText + '\n' : ''}
         if (contentAccum.trim()) appendRecipe(contentAccum);
 
       } else {
-        // ストリーミング非対応のフォールバック（一括受信）
+        // 通常JSONレスポンス（既存のfunctionsエンドポイントなど）
         const data = await res.json();
         const content: string =
           data?.choices?.[0]?.message?.content ?? data?.content ?? '';
