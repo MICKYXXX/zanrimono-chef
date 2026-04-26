@@ -278,6 +278,7 @@ export default function HomeScreen() {
   // ─── API でレシピ取得（ストリーミング対応）────────────────────────────────
 
   const handleFetchRecipes = useCallback(async () => {
+    console.log('[DEBUG] handleFetchRecipes called, ingredients:', ingredients.length);
     if (ingredients.length === 0) {
       Alert.alert('食材を入力してください', '食材を1つ以上追加してからレシピを提案してもらいましょう。');
       return;
@@ -326,6 +327,7 @@ ${profileText ? '\n' + profileText + '\n' : ''}
 一般的な家庭料理・レストラン料理のみを提案してください。`;
 
     try {
+      console.log('[DEBUG] fetching:', API_ENDPOINT);
       const res = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -435,6 +437,7 @@ ${profileText ? '\n' + profileText + '\n' : ''}
       await bumpStreak();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
+      console.log('[DEBUG] catch error:', message);
       Alert.alert('エラー', `レシピの取得に失敗しました。\n${message}`);
     } finally {
       setLoading(false);
