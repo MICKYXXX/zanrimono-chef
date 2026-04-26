@@ -357,7 +357,9 @@ ${profileText ? '\n' + profileText + '\n' : ''}
         }
       };
 
-      const isStreaming = res.headers.get('content-type')?.includes('text/event-stream') ?? false;
+      const contentType = res.headers.get('content-type') ?? '';
+      const isStreaming = contentType.includes('text/event-stream');
+      console.log('[API] status:', res.status, 'content-type:', contentType, 'isStreaming:', isStreaming);
 
       if (isStreaming && res.body) {
         // SSEストリーミング：レシピを1件ずつ表示
@@ -406,16 +408,22 @@ ${profileText ? '\n' + profileText + '\n' : ''}
         const data = await res.json();
         const content: string =
           data?.choices?.[0]?.message?.content ?? data?.content ?? '';
+        console.log('[API] raw content:', content.slice(0, 300));
         const arrayMatch = content.match(/\[[\s\S]*\]/);
+        console.log('[API] arrayMatch:', !!arrayMatch);
         if (arrayMatch) {
           const parsed: Recipe[] = JSON.parse(arrayMatch[0]);
+          console.log('[API] parsed recipes:', parsed.length);
           filterRecipes(parsed).forEach((r) => {
             setRecipes((prev) => [...prev, r]);
             addedCount++;
           });
         } else {
-          content.split('\n').forEach(appendRecipe);
+          const lines = content.split('\n').filter((l) => l.trim());
+          console.log('[API] JSONLines count:', lines.length);
+          lines.forEach(appendRecipe);
         }
+        console.log('[API] addedCount:', addedCount);
       }
 
       // ── 4. 結果チェック ─────────────────────────────────────────────────
