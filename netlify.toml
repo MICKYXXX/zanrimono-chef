@@ -1,6 +1,7 @@
 [build]
-  command = "mkdir -p dist"
+  command = "mkdir -p dist && echo 'ok' > dist/index.html"
   publish = "dist"
+  edge_functions = "netlify/edge-functions"
 
 [build.environment]
   NODE_VERSION = "18"
