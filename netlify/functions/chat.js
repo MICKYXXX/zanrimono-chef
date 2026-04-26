@@ -1,32 +1,8 @@
-const https = require('https');
-
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
-
-function postJson(url, data, authHeader) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify(data);
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-        Authorization: authHeader,
-      },
-    };
-    const req = https.request(url, options, (res) => {
-      let raw = '';
-      res.on('data', (chunk) => { raw += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, body: raw }));
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
-}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
@@ -46,35 +22,34 @@ exports.handler = async (event) => {
     };
   }
 
-  let body;
+  let reqBody;
   try {
-    body = JSON.parse(event.body ?? '{}');
+    reqBody = JSON.parse(event.body ?? '{}');
   } catch {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
-  try {
-    const result = await postJson(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: body.model ?? 'gpt-4o-mini',
-        messages: body.messages,
-        stream: false,
-      },
-      `Bearer ${apiKey}`
-    );
+  console.log('[chat] calling OpenAI, model:', reqBody.model ?? 'gpt-4o-mini');
 
-    return {
-      statusCode: result.status,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      body: result.body,
-    };
-  } catch (err) {
-    console.error('[chat] OpenAI request failed:', err);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: String(err) }),
-    };
-  }
+  const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: reqBody.model ?? 'gpt-4o-mini',
+      messages: reqBody.messages,
+      stream: false,
+    }),
+  });
+
+  const data = await openaiRes.json();
+  console.log('[chat] OpenAI status:', openaiRes.status);
+
+  return {
+    statusCode: openaiRes.status,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  };
 };
