@@ -58,7 +58,7 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_ENDPOINT =
-  'https://dashing-crumble-cb48ca.netlify.app/.netlify/functions/chat';
+  'https://dashing-crumble-cb48ca.netlify.app/.netlify/functions/recipe';
 
 const DIFFICULTY_COLORS: Record<Recipe['difficulty'], string> = {
   簡単: AppColors.green,
